@@ -1,227 +1,240 @@
 #include <iostream>
 #include <cstring>
+#include <iomanip>
 using namespace std;
 
-/*
 class graph {
 private:
-  int n; //# of vertices
   int g[20][20]; //adjacency matrix
-  char* label; //label of vertex/edge
+  char vertices[20];
+  int numV;
   
 public:
   // constructor
-  graph(int x) {
-    n = x;
-    
-    // initializing each element of the adjacency matrix to zero
-    for (int i = 0; i < n; ++i) {
-      for (int j = 0; j < n; ++j) {
+  graph() {
+    numV = 0;
+    for (int i = 0; i < 20; i++) {
+      for (int j = 0; j < 20; j++) {
 	g[i][j] = 0;
       }
     }
+    memset(vertices, '\0', sizeof(vertices));
   }
 
   void display() {
-    cout << "\n\n Adjacency Matrix: ";
-
-    for (int i = 0; i < n; ++i) {
-      cout << "\n";
-      for (int j = 0; j < n; ++j) {
-	cout << " " << g[i][j];
-      }
+    cout << "Adjacency Table:" << endl;
+    cout << endl;
+    cout << "Vertices:\t";
+    
+    for (int i = 0; i < numV; i++) {
+      //set width for equal spacing when printing
+      cout << setw(4) << vertices[i];
     }
+    cout << endl;
+    
+    for (int i = 0; i < numV; i++) {
+      cout << vertices[i] << ":\t\t";
+      for (int j = 0; j < numV; j++) {
+	cout << setw(4) << g[i][j];
+      }
+      cout << endl;
+    }
+
     cout << endl;
   }
 
-  void addVertex(char* name) {
-    //increasing number of vertices                                         
-    n++;
-    int i;
+  void addVertex(char label) {
 
-    //    vertex.label(name);
-    for(int i = 0; i < n; ++i) {
-      g[i][n-1] = 0;
-      g[n-1][i] = 0;
+    //check if label has been used or not
+    bool used = false;
+    for(int i = 0; i < 20; i++){
+      if(vertices[i] == label){
+	cout << "This label has already been used. Choose another one." << endl;
+	used = true;
+      }
+    }
+    
+    //If not used, add
+    if(!used){
+      vertices[numV] = label;
+      numV++;
+      cout << label << " has been added." << endl;
     }
   }  
-  
-  void removeVertex(int x) {
-    //check if vertex exists
-    if(x > n) {
-      cout << "\nVertex doesn't exist" << endl;
+
+  void removeVertex(char label) {
+    //check if vertex exists, if so find index #
+    int index = vIndex(label);
+    
+    if(index == -1) {
+      cout << "Vertex not found." << endl;
       return;
     }
-    else {
-      int i;
 
-      //remove vertex
-      while (x < n) {
-	// shifting the rows to left side
-	for (i = 0; i < n; ++i) {
-	  g[i][x] = g[i][x + 1];
-	}
-	
-	// shifting the columns upwards
-	for (i = 0; i < n; ++i) {
-	  g[x][i] = g[x + 1][i];
-	}
-	x++;
+    //remove vertex and its edges
+    for(int i = index; i < numV - 1; i++) {
+      vertices[i] = vertices[i + 1];
+      for(int j = 0; j < numV; j++) {
+	g[i][j] = g[i + 1][j];
+	g[j][i] = g[j][i + 1];
       }
-      
-      // decreasing the number of vertices
-      n--;
-    } 
-  }
-
-  void addEdge(int x, int y) {
- 
-    //check if the vertexes exist in the graph
-    if ((x >= n) || (y > n)) {
-      cout << "Vertex does not exists!";
     }
+
+    vertices[numV - 1] = '\0';
+    numV --;
     
-    // checks if the vertex is connecting to itself
-    if (x == y) {
-      cout << "Same Vertex!";
+    //reset rows and columns
+    for(int i = 0; i < numV; i++) {
+      g[i][index] = g[i][index + 1];
+      g[index][i] = g[index + 1][i];
+    }
+
+    cout << label << " is removed." << endl;
+  }
+  
+  void addEdge(char v1, char v2, int weight) {
+    int v1Index = vIndex(v1);
+    int v2Index = vIndex(v2);
+    
+    //make sure both vertexs exist
+    if (v1Index != -1 && v2Index != -1) {
+      g[v1Index][v2Index] = weight;
+      g[v2Index][v1Index] = weight;
+      cout << "Edge added between " << v1 << " & " << v2 << "." << endl; 
     }
     else {
-      // connecting the vertices
-      g[y][x] = 1;
-      g[x][y] = 1;
+      cout << "Doesn't exist." << endl;
     }
   }
 
-  void removeEdge(int x, int y) {
-    // Checks if the vertices exist in the graph
-    if ((x < 0) || (x >= n)) {
-      cout << "Vertex" << x << " does not exist!";
-    }
-    if ((y < 0) || (y >= n)) {
-      cout << "Vertex" << y << " does not exist!";
-    }
- 
-    // Checks if it is a self edge
-    if (x == y) {
-      cout << "Same Vertex!";
+  void removeEdge(char l1, char l2) {
+    int index1 = vIndex(l1);
+    int index2 = vIndex(l2);
+
+    //check if vertexs exist
+    if (index1 == -1 || index2 == -1) {
+      cout << "One or both vertices do not exist. Cannot remove edge." << endl;
+      return;
     }
     
-    else {
-      // Remove edge
-      g[y][x] = 0;
-      g[x][y] = 0;
+    if (g[index1][index2] == 0) {
+      cout << "No edge exists between vertices '" << l1 << "' and '" << l2 << "'." << endl;
+      return;
+    }
+    
+    g[index1][index2] = 0;
+    g[index2][index1] = 0;
+    
+    cout << "Edge between vertices '" << l1 << "' and '" << l2 << "' removed." << endl;
+   
+  }
+  
+  //find the index of vertex given label
+  int vIndex(char label) {
+    for (int i = 0; i < numV; i++) {
+      if(vertices[i] == label) {
+	return i;
+      }
+    }
+    return -1;
+  }
+
+  void findShortestPath(char startL, char endL) {
+    int startIndex = -1;
+    int endIndex = -1;
+
+    for (int i = 0; i < vNum; i++) {
+      if(vertices[i] == startL) {
+	startIndex = i;
+      }
+      if(vertices
     }
   }
+  
 }; 
-*/
+
 
 int main() {
-  int graph[20][20];
+  graph g;
   bool playing = true;
   char input[20];
-  char vertices[20];
-  int vertexCount = 0;
-  
+   
   while (playing == true) {
     cout << endl;
-
-
-    cout << endl;
+    g.display();
     
     cout << "Add Vertices [addV] or Edges [addE]" << endl;
     cout << "Remove Vertices [remV] or Edges [remE]" << endl;
-    cout << "Find distance [find] or quit [quit]" << endl;
-
+    cout << "Find shortest path [find] or quit [quit]" << endl;
     cout << endl;
     
     cin.get(input, 20, '\n');
     cin.ignore();
 
     //ADD VERTEX
-    if(strcmp(input, "addV") == false) {
 
-  	char vname;
-	bool used = false;
-	cout << "insert label for vertex (eg. A, B, C): ";
-	cin >> vname;
-	cin.ignore();
+    if(strcmp(input, "find") == false) {
+      char v1, v2;
 
-	//Check if label is already used
-	for(int i = 0; i < 20; i++) {
-	  if(vertices[i] == vname) {
-	    cout << "This label has already been used." << endl;
-	    used = true;
-	  }
-	}
+      cout << "enter first vertex: ";
+      cin >> v1;
+      cin.ignore();
+      cout << "enter second vertex: ";
+      cin >> v2;
+      vin.ignore();
 
-	//If not used
-	if(!used) {
-	  vertexCount++;
-	  for(int i = 0; i < 20; i++) {
-	    if(vertices[i] == '\0') {
-	      vertices[i] = vname;
-	      cout << vname << " is added" << endl;
-	      break;
-	    }
-	  }
-	}
-    }  
+      
+    }
+    
+    else if(strcmp(input, "addV") == false) {
 
-    /*
-    if(strcmp(input, "addE") == false) {
-      char vname1[10];
-      char vname2[10];
+      char label;
+      cout << "insert label for vertex (eg. A, B, C): ";
+      cin >> label;
+      cin.ignore();
+
+      g.addVertex(label);
+    }
+  
+    else if(strcmp(input, "addE") == false) {
+      char v1, v2;
       int weight;
 
       cout << "enter first vertex: ";
-      cin.get(vname1, 10, '\n');
+      cin >> v1;
       cin.ignore();
       cout << "enter second vertex: ";
-      cin.get(vname2, 10, '\n');
+      cin >> v2;
       cin.ignore();
       cout << "enter edge weight: ";
       cin >> weight;
       cin.ignore();
-      obj.addE(vname1, vname2, weight);
+      
+      g.addEdge(v1, v2, weight);
     }
     
-    if(strcmp(input, "remV") == false) {
-      char vname[10];
-      cout << "insert the name of vertex you wish to delete: ";
-      cin.get(vname, 10, '\n');
-      cin.ignore();
-      obj.removeVertex(vname);
-      cout << vname << " is removed" << endl;
-      }*/
-        
+    else if(strcmp(input, "remV") == false) {
 
-    //    if(strcmp(input, "print") == false) {
-      //print labels of vertices
-    if(vertexCount > 0) {
-	for(int i = 0; i < 20; i++) {
-	  if(vertices[i]) {
-	    cout << "\t" << vertices[i];
-	  }
-	}
-	cout << endl;
-	//print edges
-	for(int i = 0; i < 20; i++) {
-	  if(vertices[i]) {
-	    cout << vertices[i] << "\t";
-	  }
-	  if(vertices[i]) {
-	    for(int j = 0; j < 20; j++) {
-	      if(j < vertexCount) {
-		cout << graph[j][i] << "\t";
-	      }
-	      	      cout << endl;
-	    }
-	  }
-	}  
-      }
-      else {
-	cout << "Graph is empty." << endl;
-      }
+      char vname;
+      cout << "insert the name of vertex you wish to delete: ";
+      cin >> vname;
+      cin.ignore();
+
+      g.removeVertex(vname);
+     }
+
+    else if(strcmp(input, "remE") == false) {
+      char v1, v2;
+
+      cout << "enter first vertex: ";
+      cin >> v1;
+      cin.ignore();
+      cout << "enter second vertex: ";
+      cin >> v2;
+      cin.ignore();
+
+      g.removeEdge(v1, v2);
     }
-  //}
+        
+  }
 }
