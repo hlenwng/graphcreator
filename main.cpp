@@ -3,6 +3,17 @@
 #include <iomanip>
 using namespace std;
 
+/*
+  Name: Helen Wang
+  Date: June 9, 2023
+  Program: Graph Creator (Last project!)
+  Functions: Graph creator with breadth first search.
+  - Add vertices & edges with weights
+  - Delete vertices & edges
+  - Print adjacency matrix/table
+  - Find shortest path between 2 vertices using Dijkstra's algorithm
+ */
+
 class graph {
 private:
   int g[20][20]; //adjacency matrix
@@ -139,20 +150,91 @@ public:
     return -1;
   }
 
+  //Dijkstras Algorithm reference: geeksforgeeks
   void findShortestPath(char startL, char endL) {
-    int startIndex = -1;
-    int endIndex = -1;
+    int startIndex = vIndex(startL);
+    int endIndex = vIndex(endL);
 
-    for (int i = 0; i < vNum; i++) {
-      if(vertices[i] == startL) {
-	startIndex = i;
-      }
-      if(vertices
+    //Check if they exist
+    if(startIndex == -1 || endIndex == -1) {
+      cout << "One of both vertices don't exist. Cannot calculate path." << endl;
+      return;
     }
+
+    int dist[20]; //track shortest distance from start vertex to each vertex
+    int prev[29]; //track previous vertex in shortest path
+    bool visited[20]; //track visited vertices
+
+    //intialize arrays
+    for(int i = 0; i < numV; i++) {
+      dist[i] = INT_MAX;
+      prev[i] = -1;
+      visited[i] = false;
+    }
+
+    //distance from start vertex to itself is 0
+    dist[startIndex] = 0;
+
+    //Dijkstra's Algorithm
+    for(int count = 0; count < numV - 1; count++) {
+      //find vertex with minimum distance value
+      int minD = INT_MAX;
+      int minIndex = -1;
+
+      for(int i = 0; i < numV; i++) {
+	if(!visited[i] && dist[i] < minD) {
+	  minD = dist[i];
+	  minIndex = i;
+	}
+      }
+
+      //mark selected vertex as visited
+      visited[minIndex] = true;
+
+      //update distance value of adjacent vertices
+      for (int i = 0; i < numV; i++) {
+	if(!visited[i] && g[minIndex][i] != 0 &&
+	   dist[minIndex] != INT_MAX &&
+	   dist[minIndex] + g[minIndex][i] < dist[i]) {
+
+	  dist[i] = dist[minIndex] + g[minIndex][i];
+	  prev[i] = minIndex;
+	}
+      }
+    }
+
+    //if the end vertex is not reachable
+    if(dist[endIndex] == INT_MAX) {
+      cout << "No path exists between the 2 vertices." << endl;
+      return;
+    }
+
+    //construct shortest path
+    int path[20];
+    int pathSize = 0;
+    int currentVertex = endIndex;
+
+    //traverse previous vertices to construct path
+    while(currentVertex != -1) {
+      path[pathSize] = currentVertex;
+      currentVertex = prev[currentVertex];
+      pathSize++;
+    }
+
+    //print shortest path and total distance
+    cout << "Shortest path from " << startL << " to " << endL << ": ";
+    for (int i = pathSize - 1; i >= 0; i--) {
+      cout << vertices[path[i]];
+      if(i != 0) {
+	cout << " -> ";
+      }
+    }
+
+    cout << endl;
+    cout << "Total distance: " << dist[endIndex] << endl;
   }
   
 }; 
-
 
 int main() {
   graph g;
@@ -181,9 +263,9 @@ int main() {
       cin.ignore();
       cout << "enter second vertex: ";
       cin >> v2;
-      vin.ignore();
+      cin.ignore();
 
-      
+      g.findShortestPath(v1, v2);   
     }
     
     else if(strcmp(input, "addV") == false) {
@@ -235,6 +317,5 @@ int main() {
 
       g.removeEdge(v1, v2);
     }
-        
   }
 }
