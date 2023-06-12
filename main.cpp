@@ -88,19 +88,26 @@ public:
       vertices[i] = vertices[i + 1];
       for(int j = 0; j < numV; j++) {
 	g[i][j] = g[i + 1][j];
-	g[j][i] = g[j][i + 1];
+	//g[j][i] = g[j][i + 1];
       }
     }
 
     vertices[numV - 1] = '\0';
     numV--;
     
-    //reset rows and columns
-    for(int i = 0; i < numV; i++) {
-      g[i][index] = g[i][index + 1];
+    //reset rows 
+    for(int i = index; i < numV; i++) {
+      for(int j = 0; j < numV; j++) { 
+      g[i][j] = g[i +1][j];
       //g[index][i] = g[index + 1][i];
+      }
     }
 
+    //reset column of removed vertex
+    for(int i = 0; i < numV; i++) {
+      g[i][index] = 0;
+    }
+      
     cout << label << " is removed." << endl;
   }
   
@@ -244,20 +251,20 @@ public:
     cout << "Total distance: " << dist[endIndex] << endl;
   }
 
-bool isBidirectional(int graph[20][20], int numV) {
-  for (int i = 0; i < numV; i++) {
-    for (int j = 0; j < numV; j++) {
-      // Check if there is an edge from i to j but not from j to i
-      if (graph[i][j] != 0 && graph[j][i] == 0) {
-        return false;
-      }
+  bool isBidirectional(char v1, char v2) {
+    int v1Index = vIndex(v1);
+    int v2Index = vIndex(v2);
+    
+    // Check if there is an edge from v1 to v2 but not from v2 to v1
+    if (g[v1Index][v2Index] != 0 && g[v2Index][v1Index] == 0) {
+      return false;
     }
+    
+    return true;
   }
-  return true;
-}
-
-  void run() {
-    bool bidirectional = isBidirectional(g, numV);
+  
+  void run(char v1, char v2) {
+    bool bidirectional = isBidirectional(v1, v2);
     if (bidirectional) {
       cout << "The graph is bidirectional." << endl;
     } else {
@@ -274,7 +281,7 @@ int main() {
   bool playing = true;
   char input[20];
 
-  g.run();
+  //  g.run();
   
   while (playing == true) {
     cout << endl;
@@ -328,6 +335,8 @@ int main() {
       cin.ignore();
       
       g.addEdge(v1, v2, weight);
+
+      g.run(v1, v2);
     }
     
     else if(strcmp(input, "remV") == false) {
