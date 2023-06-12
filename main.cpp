@@ -93,12 +93,12 @@ public:
     }
 
     vertices[numV - 1] = '\0';
-    numV --;
+    numV--;
     
     //reset rows and columns
     for(int i = 0; i < numV; i++) {
       g[i][index] = g[i][index + 1];
-      g[index][i] = g[index + 1][i];
+      //g[index][i] = g[index + 1][i];
     }
 
     cout << label << " is removed." << endl;
@@ -111,7 +111,7 @@ public:
     //make sure both vertexs exist
     if (v1Index != -1 && v2Index != -1) {
       g[v1Index][v2Index] = weight;
-      g[v2Index][v1Index] = weight;
+      //g[v2Index][v1Index] = weight;
       cout << "Edge added between " << v1 << " & " << v2 << "." << endl; 
     }
     else {
@@ -135,7 +135,7 @@ public:
     }
     
     g[index1][index2] = 0;
-    g[index2][index1] = 0;
+    //g[index2][index1] = 0;
     
     cout << "Edge between vertices '" << l1 << "' and '" << l2 << "' removed." << endl;
    
@@ -156,6 +156,15 @@ public:
     int startIndex = vIndex(startL);
     int endIndex = vIndex(endL);
 
+    for(int i = 0; i < numV; i++) {
+      if(vertices[i] == startL) {
+	startIndex = i;
+      }
+      if(vertices[i] == endL) {
+	endIndex = i;
+      }
+    }
+    
     //Check if they exist
     if(startIndex == -1 || endIndex == -1) {
       cout << "One of both vertices don't exist. Cannot calculate path." << endl;
@@ -234,14 +243,39 @@ public:
     cout << endl;
     cout << "Total distance: " << dist[endIndex] << endl;
   }
+
+bool isBidirectional(int graph[20][20], int numV) {
+  for (int i = 0; i < numV; i++) {
+    for (int j = 0; j < numV; j++) {
+      // Check if there is an edge from i to j but not from j to i
+      if (graph[i][j] != 0 && graph[j][i] == 0) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+  void run() {
+    bool bidirectional = isBidirectional(g, numV);
+    if (bidirectional) {
+      cout << "The graph is bidirectional." << endl;
+    } else {
+      cout << "The graph is directional." << endl;
+    }
+  }
   
 }; 
+
+
 
 int main() {
   graph g;
   bool playing = true;
   char input[20];
-   
+
+  g.run();
+  
   while (playing == true) {
     cout << endl;
     g.display();
@@ -259,10 +293,10 @@ int main() {
     if(strcmp(input, "find") == false) {
       char v1, v2;
 
-      cout << "enter first vertex: ";
+      cout << "enter starting vertex: ";
       cin >> v1;
       cin.ignore();
-      cout << "enter second vertex: ";
+      cout << "enter ending vertex: ";
       cin >> v2;
       cin.ignore();
 
@@ -283,10 +317,10 @@ int main() {
       char v1, v2;
       int weight;
 
-      cout << "enter first vertex: ";
+      cout << "enter starting vertex: ";
       cin >> v1;
       cin.ignore();
-      cout << "enter second vertex: ";
+      cout << "enter ending vertex: ";
       cin >> v2;
       cin.ignore();
       cout << "enter edge weight: ";
@@ -309,14 +343,22 @@ int main() {
     else if(strcmp(input, "remE") == false) {
       char v1, v2;
 
-      cout << "enter first vertex: ";
+      cout << "enter starting vertex: ";
       cin >> v1;
       cin.ignore();
-      cout << "enter second vertex: ";
+      cout << "enter ending vertex: ";
       cin >> v2;
       cin.ignore();
 
       g.removeEdge(v1, v2);
     }
+
+    else if(strcmp(input, "quit") == false) {
+      playing = false;
+    }
   }
+
 }
+
+
+
